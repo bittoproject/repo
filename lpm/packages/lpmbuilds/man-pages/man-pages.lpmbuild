@@ -1,0 +1,33 @@
+# LPM build script for man-pages
+NAME="man-pages"
+VERSION="6.15"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Linux man pages"
+URL="https://www.kernel.org/doc/man-pages/"
+LICENSE=""
+SOURCE=()
+REQUIRES=()
+PROVIDES=("man-pages")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  rm -v man3/crypt*
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make -R GIT=false
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make -R GIT=false prefix=/usr DESTDIR="$pkgdir" install
+}
