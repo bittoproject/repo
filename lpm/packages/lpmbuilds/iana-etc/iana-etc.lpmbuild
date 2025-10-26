@@ -1,0 +1,32 @@
+# LPM build script for iana-etc
+NAME="iana-etc"
+VERSION="20250926"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="/etc/protocols and /etc/services provided by IANA"
+URL="https://www.iana.org/protocols"
+LICENSE=""
+SOURCE=("https://github.com/Mic92/iana-etc/releases/download/20250926/iana-etc-20250926.tar.gz")
+REQUIRES=()
+PROVIDES=("iana-etc")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT/$NAME-$VERSION"
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT/$NAME-$VERSION"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT/$NAME-$VERSION"
+  mkdir -p "$pkgdir/etc"
+  cp services protocols "$pkgdir/etc"
+}
