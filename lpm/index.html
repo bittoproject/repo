@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repository Index</title>
+    <style>
+        body {
+            background-color: white;
+            color: black;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            margin: 20px;
+            line-height: 1.2;
+        }
+        
+        h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 1px solid black;
+            padding-bottom: 5px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 15px;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        
+        .breadcrumb a {
+            color: #0000EE;
+            text-decoration: underline;
+        }
+        
+        .directory-info {
+            margin-bottom: 10px;
+            text-align: right;
+        }
+        
+        .refresh-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #666;
+            padding: 2px 8px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #666;
+        }
+        
+        th {
+            background-color: #e0e0e0;
+            border: 1px solid #666;
+            padding: 4px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        td {
+            border: 1px solid #ccc;
+            padding: 4px 8px;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .folder-link, .file-link {
+            color: #0000EE;
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        .error {
+            background-color: #ffe6e6;
+            border: 1px solid #ff0000;
+            padding: 10px;
+            color: #cc0000;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        
+        /* Estilo retro para o spinner */
+        .spinner {
+            font-family: "Courier New", Courier, monospace;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Index of /</h1>
+        
+        <div class="breadcrumb" id="breadcrumb">
+            <a href="#" data-path="">root</a>
+        </div>
+        
+        <div class="directory-info">
+            <button class="refresh-btn" id="refresh-btn">
+                Refresh
+            </button>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+            </thead>
+            <tbody id="directory-content">
+                <tr>
+                    <td colspan="2" class="loading">
+                        <div class="spinner">Loading repository content...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <footer>
+            <!-- Footer vazio -->
+        </footer>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const directoryContent = document.getElementById('directory-content');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const refreshBtn = document.getElementById('refresh-btn');
+        
+        let currentDirectory = '';
+        
+        // Function to format bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Function to get parent directory
+        function getParentDirectory(path) {
+            if (!path) return '';
+            const parts = path.split('/');
+            parts.pop();
+            return parts.join('/');
+        }
+        
+        // Function to update breadcrumb
+        function updateBreadcrumb(path) {
+            const parts = path.split('/').filter(part => part !== '');
+            let breadcrumbHTML = '<a href="#" data-path="">root</a>';
+            
+            let currentPath = '';
+            parts.forEach((part, index) => {
+                currentPath += (currentPath ? '/' : '') + part;
+                const isLast = index === parts.length - 1;
+                
+                if (!isLast) {
+                    breadcrumbHTML += ` / <a href="#" data-path="${currentPath}">${part}</a>`;
+                } else {
+                    breadcrumbHTML += ` / <span>${part}</span>`;
+                }
+            });
+            
+            breadcrumb.innerHTML = breadcrumbHTML;
+            
+            breadcrumb.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const path = this.getAttribute('data-path');
+                    navigateTo(path);
+                });
+            });
+        }
+        
+        // Function to download file
+        function downloadFile(fileUrl, fileName) {
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Function to get direct file URL for download
+        function getRawFileUrl(githubUrl) {
+            return githubUrl
+                .replace('github.com', 'raw.githubusercontent.com')
+                .replace('/blob/', '/');
+        }
+        
+        // ===== NAVEGAÇÃO COM HISTORY API =====
+        function navigateTo(path) {
+            const newPath = path || '';
+            if (newPath !== currentDirectory) {
+                // Atualizar URL sem recarregar a página
+                let newURL = '/repo/lpm/';
+                if (newPath) {
+                    newURL += newPath + '/';
+                }
+                window.history.pushState({ path: newPath }, '', newURL);
+                fetchRepoContents(newPath);
+            }
+        }
+        
+        // ===== OBTER PATH ATUAL DA URL =====
+        function getCurrentPathFromURL() {
+            let path = window.location.pathname;
+            // Remove '/repo/lpm/' do início e '/' do final
+            path = path.replace('/repo/lpm/', '').replace(/\/$/, '');
+            return path;
+        }
+        
+        // Function to fetch repository contents
+        async function fetchRepoContents(path = '') {
+            try {
+                currentDirectory = path;
+                directoryContent.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="loading">
+                            <div class="spinner">Loading repository content...</div>
+                        </td>
+                    </tr>
+                `;
+                
+                // Update page title
+                document.title = `Index of /lpm${path ? '/' + path : ''}`;
+                document.querySelector('h1').textContent = `Index of /lpm${path ? '/' + path : ''}`;
+                
+                // Add timestamp to avoid cache
+                const timestamp = new Date().getTime();
+                const response = await fetch(`https://api.github.com/repos/bittoproject/repo/contents/lpm/${path}?t=${timestamp}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!Array.isArray(data)) {
+                    throw new Error('API response is not an array');
+                }
+                
+                // Filter to remove index.html
+                const filteredData = data.filter(item => item.name !== 'index.html');
+                filteredData.sort((a, b) => {
+                    if (a.type === b.type) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return a.type === 'dir' ? -1 : 1;
+                });
+                
+                directoryContent.innerHTML = '';
+                
+                // Add "../" row if not in root
+                if (path) {
+                    const parentRow = document.createElement('tr');
+                    
+                    const nameCell = document.createElement('td');
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.className = 'folder-link';
+                    link.textContent = '../';
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        const parentPath = getParentDirectory(path);
+                        navigateTo(parentPath);
+                    };
+                    nameCell.appendChild(link);
+                    parentRow.appendChild(nameCell);
+                    
+                    const sizeCell = document.createElement('td');
+                    sizeCell.textContent = '-';
+                    parentRow.appendChild(sizeCell);
+                    
+                    directoryContent.appendChild(parentRow);
+                }
+                
+                if (filteredData.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `
+                        <td colspan="2" style="text-align: center; padding: 20px; font-style: italic;">
+                            This directory is empty.
+                        </td>
+                    `;
+                    directoryContent.appendChild(emptyRow);
+                    return;
+                }
+                
+                filteredData.forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    const nameCell = document.createElement('td');
+                    const link = document.createElement('a');
+                    
+                    if (item.type === 'dir') {
+                        link.href = '#';
+                        link.className = 'folder-link';
+                        link.onclick = (e) => {
+                            e.preventDefault();
+                            navigateTo(item.path.replace('lpm/', ''));
+                        };
+                    } else {
+                        link.href = '#';
+                        link.className = 'file-link';
+                        link.onclick = (e) => {
+                            e.preventDefault();
+                            const rawUrl = getRawFileUrl(item.html_url);
+                            downloadFile(rawUrl, item.name);
+                        };
+                    }
+                    
+                    link.appendChild(document.createTextNode(item.name));
+                    nameCell.appendChild(link);
+                    row.appendChild(nameCell);
+                    
+                    const sizeCell = document.createElement('td');
+                    sizeCell.textContent = item.type === 'dir' ? '-' : formatBytes(item.size || 0);
+                    row.appendChild(sizeCell);
+                    
+                    directoryContent.appendChild(row);
+                });
+                
+                updateBreadcrumb(path);
+                
+            } catch (error) {
+                console.error('Error loading repository:', error);
+                directoryContent.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="error">
+                            Error: ${error.message}
+                            <br><br>
+                            <button onclick="location.reload()" style="margin-top: 10px; padding: 2px 8px; background: #f0f0f0; border: 1px solid #666; cursor: pointer;">
+                                Try Again
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // ===== LISTENER PARA NAVEGAÇÃO DO BROWSER =====
+        window.addEventListener('popstate', function(event) {
+            const path = getCurrentPathFromURL();
+            fetchRepoContents(path);
+        });
+        
+        // Refresh button
+        refreshBtn.onclick = () => {
+            fetchRepoContents(currentDirectory);
+        };
+        
+        // Auto refresh
+        setInterval(() => {
+            fetchRepoContents(currentDirectory);
+        }, 14400000);
+        
+        // ===== INICIALIZAÇÃO =====
+        const initialPath = getCurrentPathFromURL();
+        fetchRepoContents(initialPath);
+    });
+</script>
+</body>
+</html>
+
