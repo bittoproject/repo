@@ -1,0 +1,34 @@
+# LPM build script for bzip2
+NAME="bzip2"
+VERSION="1.0.8"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Burrows-Wheeler compression"
+URL="https://sourceware.org/bzip2/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("bzip2")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

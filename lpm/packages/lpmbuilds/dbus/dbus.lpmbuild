@@ -1,0 +1,36 @@
+# LPM build script for dbus
+NAME="dbus"
+VERSION="1.14.10"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Message bus system"
+URL="https://dbus.freedesktop.org/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "systemd")
+PROVIDES=("dbus")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  mkdir -p build
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  cd build
+  ../configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libexecdir=/usr/lib
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  cd build
+  make DESTDIR="$pkgdir" install
+}

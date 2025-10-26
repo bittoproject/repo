@@ -1,0 +1,34 @@
+# LPM build script for gzip
+NAME="gzip"
+VERSION="1.13"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="GNU compression utility"
+URL="https://www.gnu.org/software/gzip/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("gzip")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

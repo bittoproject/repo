@@ -1,0 +1,34 @@
+# LPM build script for tar
+NAME="tar"
+VERSION="1.35"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="GNU tar"
+URL="https://www.gnu.org/software/tar/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "xz")
+PROVIDES=("tar")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

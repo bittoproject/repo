@@ -1,0 +1,34 @@
+# LPM build script for gmp
+NAME="gmp"
+VERSION="6.3.0"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="GNU multiple precision arithmetic"
+URL="https://gmplib.org/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("gmp")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

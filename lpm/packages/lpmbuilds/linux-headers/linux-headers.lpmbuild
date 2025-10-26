@@ -1,0 +1,34 @@
+# LPM build script for linux-headers
+NAME="linux-headers"
+VERSION="6.15.7"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Linux API headers"
+URL="https://www.kernel.org/"
+LICENSE=""
+SOURCE=()
+REQUIRES=()
+PROVIDES=("linux-headers")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

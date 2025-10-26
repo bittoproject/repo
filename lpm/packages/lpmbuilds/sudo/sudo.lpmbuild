@@ -1,0 +1,41 @@
+# LPM build script for sudo
+NAME="sudo"
+VERSION="1.9.15p5"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Give certain users the ability to run some commands as root"
+URL="https://www.sudo.ws/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "pam")
+PROVIDES=("sudo")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr \
+  --libexecdir=/usr/lib \
+  --with-pam \
+  --with-env-editor \
+  --with-all-insults
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+  install -d -m 755 "$pkgdir/etc/sudoers.d"
+  echo "%wheel ALL=(ALL) ALL" > "$pkgdir/etc/sudoers.d/10-wheel"
+  chmod 440 "$pkgdir/etc/sudoers.d/10-wheel"
+}

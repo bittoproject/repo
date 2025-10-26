@@ -1,0 +1,36 @@
+# LPM build script for dbus-broker
+NAME="dbus-broker"
+VERSION="36"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Linux D-Bus message broker"
+URL="https://github.com/bus1/dbus-broker"
+LICENSE="Apache-2.0"
+SOURCE=("https://github.com/bus1/dbus-broker/releases/download/v${VERSION}/dbus-broker-${VERSION}.tar.xz")
+REQUIRES=("glibc" "systemd" "libcap")
+PROVIDES=("dbus-daemon" "dbus-broker")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  rm -rf "${NAME}-${VERSION}"
+  tar -xf "dbus-broker-${VERSION}.tar.xz"
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  meson setup build --prefix=/usr --sysconfdir=/etc --buildtype=release
+  meson compile -C build
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  meson install -C build --destdir "$pkgdir"
+  install -Dm644 "scripts/systemd/dbus-broker.service" "$pkgdir/usr/lib/systemd/system/dbus-broker.service"
+}

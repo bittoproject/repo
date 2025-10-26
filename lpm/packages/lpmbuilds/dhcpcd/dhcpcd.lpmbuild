@@ -1,0 +1,35 @@
+# LPM build script for dhcpcd
+NAME="dhcpcd"
+VERSION="10.0.6"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="DHCP client daemon"
+URL="https://roy.marples.name/projects/dhcpcd"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("dhcpcd")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr --sbindir=/usr/bin --sysconfdir=/etc
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+  install -Dm644 dhcpcd.conf "$pkgdir/etc/dhcpcd.conf"
+}

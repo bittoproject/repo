@@ -1,0 +1,33 @@
+# LPM build script for openssl
+NAME="openssl"
+VERSION="3.3.2"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="SSL/TLS toolkit"
+URL="https://www.openssl.org/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "zlib" "perl")
+PROVIDES=("openssl")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

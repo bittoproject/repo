@@ -1,0 +1,34 @@
+# LPM build script for util-linux
+NAME="util-linux"
+VERSION="2.40"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Miscellaneous system utilities"
+URL="https://github.com/util-linux/util-linux"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("util-linux")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

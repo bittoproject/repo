@@ -1,0 +1,34 @@
+# LPM build script for lpm
+NAME="lpm"
+VERSION="0.1.0"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Linux Package Manager (LPM)"
+URL="https://gitlab.com/ryzenos1/lpm"
+LICENSE=""
+SOURCE=()
+REQUIRES=("python" "openssl" "zstd" "sqlite" "tar" "gnupg" "curl" "ca-certificates")
+PROVIDES=("lpm")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

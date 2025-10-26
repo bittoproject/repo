@@ -1,0 +1,34 @@
+# LPM build script for libnl
+NAME="libnl"
+VERSION="3.9.0"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Netlink protocol library"
+URL="https://www.infradead.org/~tgr/libnl/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc")
+PROVIDES=("libnl")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

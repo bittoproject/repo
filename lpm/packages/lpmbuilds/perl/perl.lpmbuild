@@ -1,0 +1,34 @@
+# LPM build script for perl
+NAME="perl"
+VERSION="5.40.0"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Practical Extraction and Reporting Language"
+URL="https://www.perl.org/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "gdbm")
+PROVIDES=("perl")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

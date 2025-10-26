@@ -1,0 +1,33 @@
+# LPM build script for iw
+NAME="iw"
+VERSION="5.19"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="nl80211 based CLI for wireless devices"
+URL="https://wireless.wiki.kernel.org/en/users/Documentation/iw"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "libnl")
+PROVIDES=("iw")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make -j"$(nproc)" NL80211_INC=/usr/include/libnl3 NL80211_LIBS="-lnl-3 -lnl-genl-3"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

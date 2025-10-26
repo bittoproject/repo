@@ -1,0 +1,34 @@
+# LPM build script for readline
+NAME="readline"
+VERSION="8.2"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="Line editing library"
+URL="https://tiswww.case.edu/php/chet/readline/rltop.html"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "ncurses")
+PROVIDES=("readline")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

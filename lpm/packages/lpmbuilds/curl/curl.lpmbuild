@@ -1,0 +1,34 @@
+# LPM build script for curl
+NAME="curl"
+VERSION="8.10.0"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="URL retrieval utility"
+URL="https://curl.se/"
+LICENSE=""
+SOURCE=()
+REQUIRES=("glibc" "openssl" "zlib" "zstd" "ca-certificates")
+PROVIDES=("curl")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  :
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  ./configure --prefix=/usr
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  make DESTDIR="$pkgdir" install
+}

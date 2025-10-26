@@ -1,0 +1,35 @@
+# LPM build script for expat
+NAME="expat"
+VERSION="2.6.2"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="XML parser library"
+URL="https://libexpat.github.io/"
+LICENSE="MIT"
+SOURCE=("https://github.com/libexpat/libexpat/releases/download/R_${VERSION//./_}/expat-${VERSION}.tar.xz")
+REQUIRES=("glibc")
+PROVIDES=("expat" "libexpat")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  rm -rf "${NAME}-${VERSION}"
+  tar -xf "expat-${VERSION}.tar.xz"
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  ./configure --prefix=/usr --disable-static
+  make -j"$(nproc)"
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  make DESTDIR="$pkgdir" install
+}

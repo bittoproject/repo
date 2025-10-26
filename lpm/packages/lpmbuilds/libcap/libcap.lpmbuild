@@ -1,0 +1,34 @@
+# LPM build script for libcap
+NAME="libcap"
+VERSION="2.70"
+RELEASE="1"
+ARCH="${ARCH:-x86_64}"
+SUMMARY="POSIX capabilities library"
+URL="https://sites.google.com/site/fullycapable/"
+LICENSE="BSD-3-Clause"
+SOURCE=("https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-${VERSION}.tar.xz")
+REQUIRES=("glibc")
+PROVIDES=("libcap")
+CONFLICTS=()
+OBSOLETES=()
+RECOMMENDS=()
+SUGGESTS=()
+
+prepare() {
+  set -euxo pipefail
+  cd "$SRCROOT"
+  rm -rf "${NAME}-${VERSION}"
+  tar -xf "libcap-${VERSION}.tar.xz"
+}
+
+build() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  make -j"$(nproc)" prefix=/usr lib=lib
+}
+
+staging() {
+  set -euxo pipefail
+  cd "$SRCROOT/${NAME}-${VERSION}"
+  make DESTDIR="$pkgdir" prefix=/usr lib=lib RAISE_SETFCAP=no install
+}
