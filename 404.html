@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Loading...</title>
+    <script>
+        // Captura o path atual e redireciona para o SPA
+        const currentPath = window.location.pathname;
+        
+        if (currentPath.startsWith('/repo/lpm')) {
+            // Se já está no /lpm, vai para o SPA com hash
+            const path = currentPath.replace('/repo/lpm', '').replace(/^\//, '');
+            window.location.href = '/repo/lpm/#' + path;
+        } else if (currentPath.startsWith('/repo/')) {
+            // Qualquer outra coisa no /repo vai para /lpm
+            const subPath = currentPath.replace('/repo/', '');
+            window.location.href = '/repo/lpm/#' + subPath;
+        } else {
+            // Fallback
+            window.location.href = '/repo/lpm/';
+        }
+    </script>
+</head>
+<body>
+    <p>Loading repository browser...</p>
+</body>
+</html>
